@@ -4,7 +4,9 @@ import com.vahabvahabov.file_service.dto.PhraseUploadDTO;
 import com.vahabvahabov.file_service.dto.WordUploadDTO;
 import com.vahabvahabov.file_service.exception.exceptions.FileSyncException;
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.common.protocol.types.Field;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -19,8 +21,12 @@ public class FileSyncService {
     private final WordClient wordClient;
     private final PhraseClient phraseClient;
 
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
     @Value("${app.dict.words.file-path}") private String wordsFilePath;
     @Value("${app.dict.phrases.file-path}") private String phrasesFilePath;
+    @Value("${app.dict.phrases.topic}") private String phraseTopic;
+    @Value("${app.dict.words.topic}") private String wordTopic;
 
     public void syncFromFile(boolean isPhrase) {
         try {
@@ -62,6 +68,26 @@ public class FileSyncService {
         }catch (Exception e) {
             throw new FileSyncException("Error occurred during the communication with Word Service: " + e.getMessage());
         }
+    }
+
+    public void syncFromFileUsingKafka(boolean isPhrase) {
+        try {
+            if (isPhrase) {
+                Path path = Paths.get(phrasesFilePath);
+                List<String> lines = Files.readAllLines(path);
+
+                kafkaTemplate.send(phraseTopic, lines);
+            }
+            else {
+                Path path = Paths.get(wordsFilePath);
+                List<String> lines = Files.readAllLines(path);
+
+                kafkaTemplate.send(wordTopic, lines);
+            }
+        } catch (Exception e) {
+            throw new FileSyncException("Could not read the source file.");
+        }
+
     }
 
 }

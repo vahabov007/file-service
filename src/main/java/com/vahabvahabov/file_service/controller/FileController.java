@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,6 +30,17 @@ public class FileController {
         return ResponseEntity.ok(ApiResponse.success("File sync process has successfully finished!",
                                                          null, 200,
                                                               request.getRequestURI()));
+    }
+
+    @PostMapping("/kafka")
+    @Operation(summary = "File sync: every word stores in word.txt file.")
+    public ResponseEntity<ApiResponse<Void>> syncDataWithKafka(@RequestParam boolean isPhrase,
+                                                               HttpServletRequest request) {
+        fileSyncService.syncFromFileUsingKafka(isPhrase);
+
+        return ResponseEntity.ok(ApiResponse.success("Sync process started in the background.",
+                                                              null, HttpStatus.ACCEPTED.value(),
+                                                                request.getRequestURI()));
     }
 
 }
