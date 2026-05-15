@@ -18,8 +18,8 @@ import java.util.List;
 @Service @RequiredArgsConstructor
 public class FileSyncService {
 
-    private final WordClient wordClient;
-    private final PhraseClient phraseClient;
+//    private final WordClient wordClient;
+//    private final PhraseClient phraseClient;
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -29,45 +29,45 @@ public class FileSyncService {
     @Value("${app.dict.words.topic}") private String wordTopic;
 
     public void syncFromFile(boolean isPhrase) {
-        try {
-            if (isPhrase) {
-                Path path = Paths.get(phrasesFilePath);
-                List<String> lines = Files.readAllLines(path);
-                var response  = phraseClient.parseLines(lines);
-
-                if(response.getBody() == null || response.getBody().getData() == null) {
-                    throw new FileSyncException("Phrase Service returned an empty result.");
-                }
-                List<PhraseUploadDTO> wrappedLines = response.getBody().getData().getLines();
-
-                if (wrappedLines == null) {
-                    throw new FileSyncException("ParsePhraseResultDTO contains no lines");
-                }
-
-                phraseClient.saveAllStrict(wrappedLines);
-            } else {
-                Path path = Paths.get(wordsFilePath);
-                List<String> lines = Files.readAllLines(path);
-                var response  = wordClient.parseLines(lines);
-
-                if(response.getBody() == null || response.getBody().getData() == null) {
-                    throw new FileSyncException("Word Service returned an empty result.");
-                }
-                List<WordUploadDTO> wrappedLines = response.getBody().getData().getLines();
-
-                if (wrappedLines == null) {
-                    throw new FileSyncException("ParseWordResultDTO contains no lines");
-                }
-                for (WordUploadDTO word : wrappedLines) {
-                    word.setHasEmptySlot(false);
-                    wordClient.saveStrict(word);
-                }
-            }
-        }catch (IOException e) {
-            throw new FileSyncException("Could not read the source file for sync.");
-        }catch (Exception e) {
-            throw new FileSyncException("Error occurred during the communication with Word Service: " + e.getMessage());
-        }
+//        try {
+//            if (isPhrase) {
+//                Path path = Paths.get(phrasesFilePath);
+//                List<String> lines = Files.readAllLines(path);
+//                var response  = phraseClient.parseLines(lines);
+//
+//                if(response.getBody() == null || response.getBody().getData() == null) {
+//                    throw new FileSyncException("Phrase Service returned an empty result.");
+//                }
+//                List<PhraseUploadDTO> wrappedLines = response.getBody().getData().getLines();
+//
+//                if (wrappedLines == null) {
+//                    throw new FileSyncException("ParsePhraseResultDTO contains no lines");
+//                }
+//
+//                phraseClient.saveAllStrict(wrappedLines);
+//            } else {
+//                Path path = Paths.get(wordsFilePath);
+//                List<String> lines = Files.readAllLines(path);
+//                var response  = wordClient.parseLines(lines);
+//
+//                if(response.getBody() == null || response.getBody().getData() == null) {
+//                    throw new FileSyncException("Word Service returned an empty result.");
+//                }
+//                List<WordUploadDTO> wrappedLines = response.getBody().getData().getLines();
+//
+//                if (wrappedLines == null) {
+//                    throw new FileSyncException("ParseWordResultDTO contains no lines");
+//                }
+//                for (WordUploadDTO word : wrappedLines) {
+//                    word.setHasEmptySlot(false);
+//                    wordClient.saveStrict(word);
+//                }
+//            }
+//        }catch (IOException e) {
+//            throw new FileSyncException("Could not read the source file for sync.");
+//        }catch (Exception e) {
+//            throw new FileSyncException("Error occurred during the communication with Word Service: " + e.getMessage());
+//        }
     }
 
     public void syncFromFileUsingKafka(boolean isPhrase) {
